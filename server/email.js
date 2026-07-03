@@ -75,3 +75,40 @@ export async function sendLeadNotification(lead) {
     console.error('Error sending lead notification email:', error);
   }
 }
+
+export async function sendTelegramNotification(lead) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!botToken || !chatId) {
+    console.warn('WARNING: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID environment variables are not configured on Render. Telegram notification not sent.');
+    return;
+  }
+
+  const messageText = `<b>🔔 New Lead Received on Aperio Studio!</b>\n\n` +
+    `👤 <b>Name:</b> ${lead.name}\n` +
+    `📧 <b>Email:</b> ${lead.email}\n` +
+    `🏢 <b>Business:</b> ${lead.businessName || 'N/A'}\n` +
+    `💰 <b>Budget:</b> ${lead.budget || 'N/A'}\n\n` +
+    `📝 <b>Project Details:</b>\n<i>${lead.projectDetails || 'No details provided.'}</i>`;
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: messageText,
+        parse_mode: 'HTML'
+      })
+    });
+    const result = await response.json();
+    if (result.ok) {
+      console.log('Telegram notification sent successfully!');
+    } else {
+      console.error('Telegram API error:', result.description);
+    }
+  } catch (err) {
+    console.error('Error sending Telegram notification:', err);
+  }
+}

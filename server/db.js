@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { sendLeadNotification } from './email.js';
+import { sendLeadNotification, sendTelegramNotification } from './email.js';
 
 dotenv.config();
 
@@ -337,8 +337,9 @@ export async function createLead(data) {
     writeJsonDb(db);
   }
   
-  // Asynchronously trigger lead notification email
+  // Asynchronously trigger lead notification email and Telegram alert
   sendLeadNotification(newLead).catch(err => console.error('Error dispatching lead email:', err));
+  sendTelegramNotification(newLead).catch(err => console.error('Error dispatching lead Telegram:', err));
   
   return newLead;
 }

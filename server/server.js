@@ -18,7 +18,7 @@ import {
   getAnalyticsStats 
 } from './db.js';
 
-import { sendLeadNotification } from './email.js';
+import { sendLeadNotification, sendTelegramNotification } from './email.js';
 
 dotenv.config();
 
@@ -55,10 +55,10 @@ const adminAuth = (req, res, next) => {
 // PUBLIC API ENDPOINTS
 // -------------------------------------------------------
 
-// Test Email Notification Route
+// Test Email & Telegram Notifications Route
 app.get('/api/test-email', async (req, res) => {
   try {
-    console.log('API trigger: sending test email notification...');
+    console.log('API trigger: sending test notifications...');
     const testLead = {
       name: "Render System Tester",
       email: "test@render.host",
@@ -67,12 +67,15 @@ app.get('/api/test-email', async (req, res) => {
       projectDetails: "This is a direct diagnostic test executed from the live Render API endpoints."
     };
     await sendLeadNotification(testLead);
+    await sendTelegramNotification(testLead);
     res.json({ 
       success: true, 
-      message: 'Test email execution completed. If no errors are logged in the console, please check your inbox and spam folder!',
+      message: 'Test notifications execution completed. Checked both email and Telegram SMTP/API dispatches!',
       env: {
         emailUser: process.env.EMAIL_USER ? 'CONFIGURED' : 'MISSING',
-        emailPass: process.env.EMAIL_PASS ? 'CONFIGURED' : 'MISSING'
+        emailPass: process.env.EMAIL_PASS ? 'CONFIGURED' : 'MISSING',
+        telegramBotToken: process.env.TELEGRAM_BOT_TOKEN ? 'CONFIGURED' : 'MISSING',
+        telegramChatId: process.env.TELEGRAM_CHAT_ID ? 'CONFIGURED' : 'MISSING'
       }
     });
   } catch (err) {
