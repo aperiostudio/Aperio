@@ -279,6 +279,21 @@ export async function deleteTestimonial(id) {
   }
 }
 
+export async function updateTestimonial(id, data) {
+  if (isMongo) {
+    return await MongoTestimonial.findByIdAndUpdate(id, data, { new: true });
+  } else {
+    const db = readJsonDb();
+    const index = db.testimonials.findIndex(t => t._id === id);
+    if (index !== -1) {
+      db.testimonials[index] = { ...db.testimonials[index], ...data };
+      writeJsonDb(db);
+      return db.testimonials[index];
+    }
+    return null;
+  }
+}
+
 // Leads
 export async function getLeads() {
   if (isMongo) {

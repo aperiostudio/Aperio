@@ -187,14 +187,22 @@ export default function AdminDashboard() {
     }
   };
 
+  const [editingTestimonialId, setEditingTestimonialId] = useState(null);
+
   const handleCreateTestimonial = async (e) => {
     e.preventDefault();
     try {
       const avatarInitials = newTestimonial.avatar || newTestimonial.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
       const formattedTest = { ...newTestimonial, avatar: avatarInitials };
 
-      const res = await fetch(`${API_BASE_URL}/api/admin/testimonials`, {
-        method: 'POST',
+      const isEditing = !!editingTestimonialId;
+      const url = isEditing
+        ? `${API_BASE_URL}/api/admin/testimonials/${editingTestimonialId}`
+        : `${API_BASE_URL}/api/admin/testimonials`;
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${getToken()}`
@@ -204,11 +212,29 @@ export default function AdminDashboard() {
 
       if (res.ok) {
         setNewTestimonial({ name: '', role: '', company: '', content: '', rating: 5, avatar: '' });
+        setEditingTestimonialId(null);
         fetchDashboardData(getToken());
       }
     } catch (err) {
-      console.error('Error creating testimonial:', err);
+      console.error('Error saving testimonial:', err);
     }
+  };
+
+  const handleStartEditTestimonial = (test) => {
+    setEditingTestimonialId(test._id);
+    setNewTestimonial({
+      name: test.name,
+      role: test.role,
+      company: test.company,
+      content: test.content,
+      rating: test.rating || 5,
+      avatar: test.avatar || ''
+    });
+  };
+
+  const handleCancelEditTestimonial = () => {
+    setEditingTestimonialId(null);
+    setNewTestimonial({ name: '', role: '', company: '', content: '', rating: 5, avatar: '' });
   };
 
   const handleDeleteTestimonial = async (id) => {
@@ -653,8 +679,20 @@ export default function AdminDashboard() {
               
               {/* Add Testimonial Form */}
               <div className="glass-panel" style={{ padding: '30px' }}>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Plus size={18} /> Add Testimonial
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {editingTestimonialId ? <Edit size={18} style={{ color: 'var(--accent-purple)' }} /> : <Plus size={18} />}
+                    <span>{editingTestimonialId ? 'Edit Testimonial' : 'Add Testimonial'}</span>
+                  </div>
+                  {editingTestimonialId && (
+                    <button 
+                      type="button"
+                      onClick={handleCancelEditTestimonial}
+                      style={{ background: 'rgba(255, 77, 77, 0.1)', color: '#ff4d4d', border: '1px solid rgba(255, 77, 77, 0.2)', borderRadius: '4px', padding: '4px 10px', fontSize: '0.75rem', cursor: 'pointer' }}
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
                 </h3>
                 <form onSubmit={handleCreateTestimonial} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
@@ -685,7 +723,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <button type="submit" className="btn-primary" style={{ marginTop: '10px', justifyContent: 'center' }}>
-                    Save Testimonial Card
+                    {editingTestimonialId ? 'Update Testimonial Card' : 'Save Testimonial Card'}
                   </button>
                 </form>
               </div>
@@ -703,14 +741,26 @@ export default function AdminDashboard() {
                         <h4 style={{ fontSize: '0.95rem' }}>{test.name}</h4>
                         <span style={{ fontSize: '0.75rem', color: 'var(--accent-purple)' }}>{test.role}, {test.company}</span>
                       </div>
-                      <button
-                        onClick={() => handleDeleteTestimonial(test._id)}
-                        style={{ background: 'transparent', border: 'none', color: '#ff4d4d', cursor: 'pointer', transition: 'transform 0.2s' }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <button
+                          onClick={() => handleStartEditTestimonial(test)}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--accent-purple)', cursor: 'pointer', transition: 'transform 0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                          title="Edit Testimonial"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTestimonial(test._id)}
+                          style={{ background: 'transparent', border: 'none', color: '#ff4d4d', cursor: 'pointer', transition: 'transform 0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                          title="Delete Testimonial"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

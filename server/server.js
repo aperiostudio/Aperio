@@ -10,6 +10,7 @@ import {
   getTestimonials, 
   createTestimonial, 
   deleteTestimonial, 
+  updateTestimonial,
   getLeads, 
   createLead, 
   updateLeadStatus, 
@@ -278,6 +279,17 @@ app.delete('/api/admin/testimonials/:id', adminAuth, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete testimonial' });
+  }
+});
+
+// Edit testimonial
+app.put('/api/admin/testimonials/:id', adminAuth, async (req, res) => {
+  try {
+    const updatedTest = await updateTestimonial(req.params.id, req.body);
+    if (!updatedTest) return res.status(404).json({ error: 'Testimonial not found' });
+    res.json(updatedTest);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update testimonial' });
   }
 });
 
