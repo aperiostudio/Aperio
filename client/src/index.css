@@ -532,3 +532,24 @@ body::before {
     opacity: 1;
   }
 }
+
+/* Responsive Nav Header */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column !important;
+    gap: 15px !important;
+    padding: 15px 4% !important;
+    text-align: center !important;
+    position: relative !important;
+  }
+  nav > div:last-child {
+    gap: 18px !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+  nav > div:last-child > a:last-child {
+    border-left: none !important;
+    padding-left: 0 !important;
+    margin-top: 5px;
+  }
+}
