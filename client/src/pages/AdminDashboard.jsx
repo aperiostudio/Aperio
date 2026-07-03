@@ -156,15 +156,16 @@ export default function AdminDashboard() {
   const handleStartEditProject = (proj) => {
     setEditingProjectId(proj._id);
     setNewProject({
-      title: proj.title,
-      description: proj.description,
-      category: proj.category,
-      client: proj.client,
-      impact: proj.impact,
-      tags: Array.isArray(proj.tags) ? proj.tags.join(', ') : proj.tags,
+      title: proj.title || '',
+      description: proj.description || '',
+      category: proj.category || 'Web Development',
+      client: proj.client || '',
+      impact: proj.impact || '',
+      tags: Array.isArray(proj.tags) ? proj.tags.join(', ') : proj.tags || '',
       link: proj.link || '#',
       image: proj.image || 'linear-gradient(135deg, #150030 0%, #3a0078 100%)'
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancelEditProject = () => {
@@ -223,13 +224,14 @@ export default function AdminDashboard() {
   const handleStartEditTestimonial = (test) => {
     setEditingTestimonialId(test._id);
     setNewTestimonial({
-      name: test.name,
-      role: test.role,
-      company: test.company,
-      content: test.content,
+      name: test.name || '',
+      role: test.role || '',
+      company: test.company || '',
+      content: test.content || '',
       rating: test.rating || 5,
       avatar: test.avatar || ''
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancelEditTestimonial = () => {
