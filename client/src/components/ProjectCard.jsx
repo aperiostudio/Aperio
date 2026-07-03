@@ -147,18 +147,22 @@ export default function ProjectCard({ project }) {
           transform: 'translateZ(25px)',
           transition: 'transform 0.2s ease-out'
         }}>
-          {project.tags && project.tags.map((tag, i) => (
-            <span key={i} style={{
-              background: 'rgba(161, 79, 255, 0.05)',
-              border: '1px solid rgba(161, 79, 255, 0.12)',
-              borderRadius: '4px',
-              padding: '3px 10px',
-              fontSize: '0.72rem',
-              color: 'var(--text-normal)'
-            }}>
-              #{tag}
-            </span>
-          ))}
+          {project.tags && (Array.isArray(project.tags) ? project.tags : typeof project.tags === 'string' ? project.tags.split(',') : []).map((tag, i) => {
+            const trimmedTag = typeof tag === 'string' ? tag.trim() : '';
+            if (!trimmedTag) return null;
+            return (
+              <span key={i} style={{
+                background: 'rgba(161, 79, 255, 0.05)',
+                border: '1px solid rgba(161, 79, 255, 0.12)',
+                borderRadius: '4px',
+                padding: '3px 10px',
+                fontSize: '0.72rem',
+                color: 'var(--text-normal)'
+              }}>
+                #{trimmedTag}
+              </span>
+            );
+          })}
         </div>
 
         {/* Action Button with translateZ */}
