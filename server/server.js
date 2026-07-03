@@ -18,6 +18,8 @@ import {
   getAnalyticsStats 
 } from './db.js';
 
+import { sendLeadNotification } from './email.js';
+
 dotenv.config();
 
 const app = express();
@@ -52,6 +54,32 @@ const adminAuth = (req, res, next) => {
 // ----------------------------------------------------
 // PUBLIC API ENDPOINTS
 // -------------------------------------------------------
+
+// Test Email Notification Route
+app.get('/api/test-email', async (req, res) => {
+  try {
+    console.log('API trigger: sending test email notification...');
+    const testLead = {
+      name: "Render System Tester",
+      email: "test@render.host",
+      businessName: "Render Test Project",
+      budget: "$5k - $10k",
+      projectDetails: "This is a direct diagnostic test executed from the live Render API endpoints."
+    };
+    await sendLeadNotification(testLead);
+    res.json({ 
+      success: true, 
+      message: 'Test email execution completed. If no errors are logged in the console, please check your inbox and spam folder!',
+      env: {
+        emailUser: process.env.EMAIL_USER ? 'CONFIGURED' : 'MISSING',
+        emailPass: process.env.EMAIL_PASS ? 'CONFIGURED' : 'MISSING'
+      }
+    });
+  } catch (err) {
+    console.error('Test email route failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Get portfolio projects
 app.get('/api/projects', async (req, res) => {
