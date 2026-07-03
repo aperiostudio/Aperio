@@ -1,6 +1,11 @@
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 
+// Force Node.js to prefer IPv4 DNS resolution globally (fixes Render IPv6 ENETUNREACH errors)
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
 export async function sendLeadNotification(lead) {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_PASS;
