@@ -467,6 +467,50 @@ export default function ClientHome() {
         </div>
       </section>
 
+      {/* Scroll-Reveal Dual Engine Graphic Section (Aperio Engine) */}
+      <hr className="section-divider" />
+      <section className="scroll-reveal" style={{ padding: '120px 8%', background: 'rgba(10, 4, 20, 0.25)', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '50px', alignItems: 'center', maxWidth: '1200px', margin: '0 auto' }} className="engine-grid-responsive">
+          
+          {/* Left card: Cinematic Code */}
+          <div className="glass-panel reveal-left" style={{ padding: '40px 30px', minHeight: '220px' }}>
+            <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Layout size={20} style={{ color: 'var(--accent-cyan)' }} /> Cinematic Code
+            </h3>
+            <p style={{ color: 'var(--text-normal)', fontSize: '0.92rem', lineHeight: '1.65' }}>
+              High-performance React architectures designed with custom 3D canvas backgrounds, interactive WebGL physics, and silky-smooth micro-animations.
+            </p>
+          </div>
+
+          {/* Center Graphic: Orbiting Neon Coin */}
+          <div className="reveal-scale" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="orbit-container">
+              <div className="orbit-ring">
+                <div className="orbit-bead" />
+                <div className="orbit-bead-secondary" />
+              </div>
+              <div className="cinematic-coin">
+                <div className="coin-shimmer" />
+                <div className="cinematic-coin-inner">
+                  <span className="coin-symbol">A</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right card: High-Value Visuals */}
+          <div className="glass-panel reveal-right" style={{ padding: '40px 30px', minHeight: '220px' }}>
+            <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Video size={20} style={{ color: 'var(--accent-purple)' }} /> High-Value Visuals
+            </h3>
+            <p style={{ color: 'var(--text-normal)', fontSize: '0.92rem', lineHeight: '1.65' }}>
+              Elite commercial editing, custom color grading, dynamic sound design, and pacing optimized to capture attention and convert prospects.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
       {/* Portfolio Section */}
       <hr className="section-divider" />
       <section id="portfolio" className="scroll-reveal" style={{ padding: '120px 8%' }}>

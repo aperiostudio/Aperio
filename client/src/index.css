@@ -623,3 +623,183 @@ body::before {
     transform: translateY(-14px);
   }
 }
+
+/* ====================================================
+   SCROLL REVEAL & ORBITING COIN GRAPHIC
+   ==================================================== */
+
+/* GPU-accelerated Directional Reveal Transitions */
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-70px);
+  filter: blur(8px);
+  transition: opacity 1.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.3s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 1.3s ease-out;
+}
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+  filter: blur(0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(70px);
+  filter: blur(8px);
+  transition: opacity 1.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.3s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 1.3s ease-out;
+}
+.reveal-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+  filter: blur(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.85);
+  filter: blur(8px);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 1.4s ease-out;
+}
+.reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+}
+
+/* Orbit Container & Orbit Lines */
+.orbit-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbit-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(161, 79, 255, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: inset 0 0 20px rgba(161, 79, 255, 0.05),
+              0 0 20px rgba(0, 242, 254, 0.03);
+}
+
+/* Orbiting Bead with keyframe rotation */
+.orbit-bead {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--accent-purple);
+  border-radius: 50%;
+  top: -5px; /* sit on top of the circle */
+  left: 50%;
+  margin-left: -5px;
+  box-shadow: 0 0 12px 3px var(--accent-purple),
+              0 0 20px 6px var(--accent-cyan);
+  transform-origin: 5px 165px; /* rotate around center of container */
+  animation: rotateOrbit 12s infinite linear;
+}
+
+.orbit-bead-secondary {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  bottom: -4px; /* sit on bottom of the circle */
+  left: 50%;
+  margin-left: -4px;
+  box-shadow: 0 0 10px 2px var(--accent-cyan);
+  transform-origin: 4px -156px; /* rotate around center of container */
+  animation: rotateOrbit 8s infinite linear reverse;
+}
+
+@keyframes rotateOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Glassmorphic 3D Metallic Coin */
+.cinematic-coin {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  background: radial-gradient(circle at 30% 30%, rgba(38, 20, 70, 0.95) 0%, rgba(10, 4, 20, 0.98) 70%);
+  border: 2px solid rgba(161, 79, 255, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 45px rgba(161, 79, 255, 0.25),
+              inset 0 0 25px rgba(255, 255, 255, 0.05),
+              0 15px 35px rgba(0,0,0,0.5);
+  animation: floatLevitate 5s infinite ease-in-out;
+}
+
+.cinematic-coin-inner {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 242, 254, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.01);
+}
+
+.coin-shimmer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 60%);
+  animation: coinShine 6s infinite ease-in-out;
+}
+
+@keyframes coinShine {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+  50% { transform: scale(1.02) rotate(180deg); opacity: 0.8; }
+}
+
+.coin-symbol {
+  font-family: var(--font-head);
+  font-size: 3.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #fff 20%, var(--accent-purple) 60%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 8px rgba(0, 242, 254, 0.35));
+}
+
+@media (max-width: 992px) {
+  .engine-grid-responsive {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+    text-align: center;
+  }
+  .engine-grid-responsive .reveal-left {
+    transform: translateX(-40px);
+  }
+  .engine-grid-responsive .reveal-right {
+    transform: translateX(40px);
+  }
+  .engine-grid-responsive .visible {
+    transform: translateX(0) !important;
+  }
+}
