@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, Mail, Phone, MapPin, CheckCircle, Send, Cpu, Layout, Sparkles, Database, Shield, TrendingUp } from 'lucide-react';
 import ProjectCard from '../components/ProjectCard';
+import { API_BASE_URL } from '../config';
 
 export default function ClientHome() {
   const [projects, setProjects] = useState([]);
@@ -25,6 +26,40 @@ export default function ClientHome() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
 
+  // FAQ Accordion State
+  const [activeFaq, setActiveFaq] = useState(null);
+  const faqData = [
+    {
+      q: "How long does a premium web platform build take?",
+      a: "Typically, landing pages and boutique startup launch packages take 2-3 weeks. Complex full-stack SaaS architectures or tournament portals with real-time tournament brackets take 4-6 weeks from initial scope approval to deployment."
+    },
+    {
+      q: "Do you offer post-deployment maintenance?",
+      a: "Yes. All web solutions include 30 days of complimentary hyper-care coverage (security patches, hosting config adjustments). We also offer customized retainer plans for continuous features build and server optimization."
+    },
+    {
+      q: "Can I manage the website content myself?",
+      a: "Absolutely. We construct a secure administrative dashboard customized for your platform, allowing you to update projects, manage client testimonials, track incoming qualified leads, and view visitor statistics without typing a single line of code."
+    },
+    {
+      q: "Will my website be optimized for Google Search (SEO)?",
+      a: "Yes, SEO optimization is baked into our core engineering protocol. We implement semantic HTML5 styling, configure search meta tags, generate robot descriptors, and build high-performance speed metrics that search engines reward."
+    }
+  ];
+
+  // Floating Trust Activity Alerts State
+  const [activityAlert, setActivityAlert] = useState(null);
+  const alerts = [
+    "✧ Activity: Grow Elite accelerator platform deployed successfully 4 hours ago.",
+    "✦ Trust: E-sports Hub live matches dashboard optimized to 60fps latency.",
+    "✧ Deal: Mockup draft prepared for regional boutique manufacturer accelerator.",
+    "✦ Metric: Grow Elite ROI calculator reduced lead friction by 40%."
+  ];
+
+  const toggleFaq = (index) => {
+    setActiveFaq(activeFaq === index ? null : index);
+  };
+
   // Device detection for analytics logging
   const getDeviceType = () => {
     const ua = navigator.userAgent;
@@ -35,20 +70,20 @@ export default function ClientHome() {
 
   useEffect(() => {
     // Log visit
-    fetch('http://localhost:5000/api/visits', {
+    fetch(`${API_BASE_URL}/api/visits`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: '/', device: getDeviceType() })
     }).catch(err => console.log('Analytics connection error'));
 
     // Fetch projects
-    fetch('http://localhost:5000/api/projects')
+    fetch(`${API_BASE_URL}/api/projects`)
       .then(res => res.json())
       .then(data => setProjects(data))
       .catch(err => console.error('Error fetching projects:', err));
 
     // Fetch testimonials
-    fetch('http://localhost:5000/api/testimonials')
+    fetch(`${API_BASE_URL}/api/testimonials`)
       .then(res => res.json())
       .then(data => setTestimonials(data))
       .catch(err => console.error('Error fetching testimonials:', err));
@@ -81,6 +116,31 @@ export default function ClientHome() {
       revealElements.forEach(el => observer.unobserve(el));
     };
   }, [projects, testimonials]);
+
+  // Cycle floating trust alerts
+  useEffect(() => {
+    let alertIndex = 0;
+    const showNextAlert = () => {
+      setActivityAlert(alerts[alertIndex]);
+      alertIndex = (alertIndex + 1) % alerts.length;
+      
+      // Auto hide alert after 6 seconds
+      setTimeout(() => {
+        setActivityAlert(null);
+      }, 6000);
+    };
+
+    // Trigger first alert after 4 seconds
+    const initialTimeout = setTimeout(showNextAlert, 4000);
+    
+    // Cycle alerts every 14 seconds
+    const interval = setInterval(showNextAlert, 14000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleHeroMouseMove = (e) => {
     if (!heroRef.current) return;
@@ -127,7 +187,7 @@ export default function ClientHome() {
     setSubmitStatus(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/leads', {
+      const res = await fetch(`${API_BASE_URL}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -501,6 +561,71 @@ export default function ClientHome() {
         </section>
       )}
 
+      {/* FAQ Section */}
+      <hr className="section-divider" />
+      <section id="faq" className="scroll-reveal" style={{ padding: '120px 8%', background: 'rgba(5, 2, 12, 0.15)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+          <h2 style={{ fontSize: '2.5rem', marginBottom: '15px' }}>Frequently Asked Inquiries</h2>
+          <p style={{ color: 'var(--text-muted)' }}>Addressing architecture, process models, and project deliverables.</p>
+        </div>
+
+        <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {faqData.map((faq, index) => {
+            const isOpen = activeFaq === index;
+            return (
+              <div 
+                key={index} 
+                className="glass-panel" 
+                style={{ 
+                  padding: '24px 30px', 
+                  cursor: 'pointer',
+                  border: isOpen ? '1px solid rgba(161, 79, 255, 0.4)' : '1px solid var(--glass-border)',
+                  boxShadow: isOpen ? '0 10px 30px rgba(161, 79, 255, 0.08)' : 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => toggleFaq(index)}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h4 style={{ 
+                    fontSize: '1.02rem', 
+                    fontWeight: '700',
+                    color: isOpen ? 'var(--accent-cyan)' : 'var(--text-bright)',
+                    transition: 'color 0.3s'
+                  }}>
+                    {faq.q}
+                  </h4>
+                  <span style={{ 
+                    fontSize: '1rem', 
+                    color: isOpen ? 'var(--accent-cyan)' : 'var(--text-muted)',
+                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0)',
+                    transition: 'transform 0.3s'
+                  }}>
+                    ▼
+                  </span>
+                </div>
+                
+                <div style={{ 
+                  maxHeight: isOpen ? '200px' : '0', 
+                  overflow: 'hidden', 
+                  transition: 'max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), margin-top 0.4s',
+                  marginTop: isOpen ? '15px' : '0'
+                }}>
+                  <p style={{ 
+                    color: 'var(--text-normal)', 
+                    fontSize: '0.92rem', 
+                    lineHeight: '1.6', 
+                    margin: 0,
+                    textAlign: 'left'
+                  }}>
+                    {faq.a}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Contact Section */}
       <hr className="section-divider" />
       <section id="contact" className="scroll-reveal" style={{ padding: '120px 8%' }}>
@@ -648,6 +773,33 @@ export default function ClientHome() {
           <span>Crafted with Antigravity 3D principles.</span>
         </div>
       </footer>
+
+      {/* Floating Activity/Trust Alert Toast */}
+      {activityAlert && (
+        <div 
+          className="glass-panel"
+          style={{
+            position: 'fixed',
+            bottom: '25px',
+            left: '25px',
+            padding: '12px 20px',
+            borderRadius: '10px',
+            border: '1px solid rgba(0, 242, 254, 0.25)',
+            boxShadow: '0 10px 30px rgba(0, 242, 254, 0.1)',
+            zIndex: 90,
+            fontSize: '0.8rem',
+            fontWeight: '600',
+            color: 'var(--text-bright)',
+            maxWidth: '325px',
+            animation: 'slideUpAlert 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: 'var(--accent-cyan)', textShadow: '0 0 8px var(--accent-cyan)' }}>●</span>
+            <span>{activityAlert}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

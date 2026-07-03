@@ -520,3 +520,15 @@ body::before {
   background: linear-gradient(90deg, transparent, var(--glass-border) 20%, rgba(161, 79, 255, 0.25) 50%, var(--glass-border) 80%, transparent);
   border: none;
 }
+
+/* Floating Alert Slide-up Animation */
+@keyframes slideUpAlert {
+  0% {
+    transform: translateY(30px) scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Eye, FileText, TrendingUp, Laptop, Smartphone, Tablet, ChevronDown, Check, LogOut, Trash2, Plus, Calendar, DollarSign } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,7 +42,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     setAuthError('');
     try {
-      const res = await fetch('http://localhost:5000/api/admin/login', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passcode })
@@ -69,22 +70,22 @@ export default function AdminDashboard() {
     const headers = { 'Authorization': `Bearer ${token}` };
     try {
       // Fetch stats
-      const statsRes = await fetch('http://localhost:5000/api/admin/stats', { headers });
+      const statsRes = await fetch(`${API_BASE_URL}/api/admin/stats`, { headers });
       if (statsRes.status === 401) return handleLogout();
       const statsData = await statsRes.json();
       setStats(statsData);
 
       // Fetch leads
-      const leadsRes = await fetch('http://localhost:5000/api/admin/leads', { headers });
+      const leadsRes = await fetch(`${API_BASE_URL}/api/admin/leads`, { headers });
       const leadsData = await leadsRes.json();
       setLeads(leadsData);
 
       // Fetch public items
-      const projRes = await fetch('http://localhost:5000/api/projects');
+      const projRes = await fetch(`${API_BASE_URL}/api/projects`);
       const projData = await projRes.json();
       setProjects(projData);
 
-      const testRes = await fetch('http://localhost:5000/api/testimonials');
+      const testRes = await fetch(`${API_BASE_URL}/api/testimonials`);
       const testData = await testRes.json();
       setTestimonials(testData);
     } catch (err) {
@@ -94,7 +95,7 @@ export default function AdminDashboard() {
 
   const handleUpdateLeadStatus = async (leadId, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/leads/${leadId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/leads/${leadId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +120,7 @@ export default function AdminDashboard() {
         tags: newProject.tags.split(',').map(t => t.trim()).filter(Boolean)
       };
 
-      const res = await fetch('http://localhost:5000/api/admin/projects', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
   const handleDeleteProject = async (id) => {
     if (!confirm('Are you sure you want to delete this project?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/projects/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
@@ -158,7 +159,7 @@ export default function AdminDashboard() {
       const avatarInitials = newTestimonial.avatar || newTestimonial.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
       const formattedTest = { ...newTestimonial, avatar: avatarInitials };
 
-      const res = await fetch('http://localhost:5000/api/admin/testimonials', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/testimonials`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +180,7 @@ export default function AdminDashboard() {
   const handleDeleteTestimonial = async (id) => {
     if (!confirm('Are you sure you want to delete this testimonial?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/testimonials/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/testimonials/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
