@@ -15,6 +15,9 @@ export async function sendLeadNotification(lead) {
       host: 'smtp.gmail.com',
       port: 465,
       secure: true, // true for port 465
+      connectionTimeout: 5000, // 5 seconds connection timeout
+      greetingTimeout: 5000,   // 5 seconds greeting timeout
+      socketTimeout: 5000,     // 5 seconds socket timeout
       logger: true, // Log connection data to console
       debug: true,  // Include SMTP traffic in logs
       auth: {
