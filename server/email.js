@@ -15,6 +15,8 @@ export async function sendLeadNotification(lead) {
       host: 'smtp.gmail.com',
       port: 465,
       secure: true, // true for port 465
+      logger: true, // Log connection data to console
+      debug: true,  // Include SMTP traffic in logs
       auth: {
         user: emailUser,
         pass: emailPass
