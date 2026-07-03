@@ -255,7 +255,6 @@ export default function ClientHome() {
           <a href="#portfolio" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Portfolio</a>
           <a href="#testimonials" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Testimonials</a>
           <a href="#contact" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Get in Touch</a>
-          <Link to="/admin" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.85rem', borderLeft: '1px solid var(--glass-border)', paddingLeft: '20px' }} onMouseEnter={e => e.target.style.color = 'var(--accent-purple)'} onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}>Admin Access</Link>
         </div>
       </nav>
 
@@ -751,8 +750,8 @@ export default function ClientHome() {
             <div>
               <h4 style={{ fontSize: '0.9rem', marginBottom: '15px', color: '#fff' }}>Security</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem' }}>
-                <li><Link to="/admin" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Admin Dashboard</Link></li>
-                <li><span style={{ color: 'var(--text-muted)' }}>Secure Portal</span></li>
+                <li><span style={{ color: 'var(--text-muted)' }}>Secure SSL Encryption</span></li>
+                <li><span style={{ color: 'var(--text-muted)' }}>GDPR Compliance</span></li>
               </ul>
             </div>
           </div>

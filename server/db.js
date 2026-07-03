@@ -123,20 +123,20 @@ const MongoVisit = mongoose.models.Visit || mongoose.model('Visit', VisitSchema)
 async function seedDefaults() {
   const defaultProjects = [
     {
-      title: "Grow Elite",
+      title: "Grow Athlete",
       description: "A scale-up landing platform built for an executive startup accelerator. Includes a multi-step pricing funnel, real-time consultation scheduler, and interactive marketing ROI calculators. Reduced lead friction by 40% within the first month of deployment.",
       category: "Web App / Startup Launch",
-      client: "Grow Elite Inc.",
+      client: "Hemant",
       impact: "+180% Lead Rate",
       tags: ["React", "Fastify", "ROI Engine", "Aesthetic Funnels"],
       link: "#",
       image: "linear-gradient(135deg, #150030 0%, #3a0078 100%)"
     },
     {
-      title: "E-sports Hub",
+      title: "Bloodline Battle Esports Hub",
       description: "An immersive e-sports tournament dashboard and community portal. Built with live match statistics, dynamic brackets, discord notification webhook triggers, and player registration modules. Configured to support up to 5,000 concurrent tournament participants.",
       category: "Gaming & Web3",
-      client: "Elite Esports Tournament",
+      client: "Lucky",
       impact: "5.2k Active Registrants",
       tags: ["React", "Real-time Brackets", "WebSockets", "Glassmorphic UI"],
       link: "#",
@@ -148,7 +148,7 @@ async function seedDefaults() {
     {
       name: "Marcus Vance",
       role: "CEO & Founder",
-      company: "Grow Elite",
+      company: "Grow Athlete",
       content: "Aperio Digital transformed our online presence completely. The user experience they designed for our platform was cinematic and converted leads better than any platform we've used in the past five years. Extremely professional team.",
       rating: 5,
       avatar: "MV"
@@ -156,7 +156,7 @@ async function seedDefaults() {
     {
       name: "Sarah 'Valkyrie' Chen",
       role: "Tournament Director",
-      company: "E-sports Hub",
+      company: "Bloodline Battle Esports Hub",
       content: "Our tournament registrants were amazed by the fluid bracket updates and the dark-cyber dashboard. Working with them was an absolute pleasure; they understood the aesthetics of our gaming community perfectly.",
       rating: 5,
       avatar: "SC"
