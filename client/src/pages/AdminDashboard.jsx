@@ -68,7 +68,7 @@ export default function AdminDashboard() {
     companyName: 'Aperio Studio',
     email: 'aperiostudio92@gmail.com',
     phone: '+1 (555) 000-0000',
-    whatsApp: '1234567890',
+    whatsApp: '+91 9849836092',
     address: 'San Francisco, CA',
     businessHours: '9 AM - 6 PM EST',
     socialLinks: { twitter: '', linkedin: '', github: '' }
