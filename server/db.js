@@ -43,12 +43,24 @@ function initializeJsonDb() {
       leads: [],
       projects: [],
       testimonials: [],
+      reviews: [],
       analytics: {
         visits: [],
         leadConversions: 0
       }
     };
     fs.writeFileSync(dbFilePath, JSON.stringify(initialData, null, 2), 'utf-8');
+  } else {
+    try {
+      const data = fs.readFileSync(dbFilePath, 'utf-8');
+      const db = JSON.parse(data);
+      if (!db.reviews) {
+        db.reviews = [];
+        fs.writeFileSync(dbFilePath, JSON.stringify(db, null, 2), 'utf-8');
+      }
+    } catch (e) {
+      console.error('Error initializing reviews array in db.json:', e);
+    }
   }
 }
 
@@ -118,6 +130,18 @@ const VisitSchema = new mongoose.Schema({
 });
 const MongoVisit = mongoose.models.Visit || mongoose.model('Visit', VisitSchema);
 
+const ReviewSchema = new mongoose.Schema({
+  name: String,
+  company: String,
+  email: String,
+  projectName: String,
+  rating: Number,
+  feedback: String,
+  status: { type: String, default: 'approved' },
+  createdAt: { type: Date, default: Date.now }
+});
+const MongoReview = mongoose.models.Review || mongoose.model('Review', ReviewSchema);
+
 // ----------------------------------------------------
 // SEEDING DEFAULTS
 // ----------------------------------------------------
@@ -174,6 +198,27 @@ async function seedDefaults() {
     }
   ];
 
+  const defaultReviews = [
+    {
+      name: "Hemant Kumar",
+      company: "Grow Athlete",
+      email: "hemant@growathlete.com",
+      projectName: "Grow Athlete Scale-up Funnel",
+      rating: 5,
+      feedback: "Aperio Studio built a world-class landing system for our startup accelerator. Our lead generation conversion rate increased by 180% within the first month. Their attention to animations and performance is lease to say, brilliant.",
+      status: "approved"
+    },
+    {
+      name: "Lucky Singh",
+      company: "Bloodline Esports",
+      email: "lucky@bloodline.gg",
+      projectName: "Esports Tournament Hub",
+      rating: 5,
+      feedback: "The tournament portal is extremely fast, highly interactive, and handled thousands of concurrent registrations without a single hiccup. Our players loved the dark mode aesthetic and the tournament bracket layouts.",
+      status: "approved"
+    }
+  ];
+
   if (isMongo) {
     const projectCount = await MongoProject.countDocuments();
     if (projectCount === 0) {
@@ -184,6 +229,11 @@ async function seedDefaults() {
     if (testimonialCount === 0) {
       await MongoTestimonial.insertMany(defaultTestimonials);
       console.log('Seeded default testimonials into MongoDB.');
+    }
+    const reviewCount = await MongoReview.countDocuments();
+    if (reviewCount === 0) {
+      await MongoReview.insertMany(defaultReviews);
+      console.log('Seeded default reviews into MongoDB.');
     }
   } else {
     const db = readJsonDb();
@@ -196,9 +246,13 @@ async function seedDefaults() {
       db.testimonials = defaultTestimonials.map(t => ({ _id: generateId(), ...t }));
       updated = true;
     }
+    if (!db.reviews || db.reviews.length === 0) {
+      db.reviews = defaultReviews.map(r => ({ _id: generateId(), ...r, createdAt: new Date().toISOString() }));
+      updated = true;
+    }
     if (updated) {
       writeJsonDb(db);
-      console.log('Seeded default projects/testimonials into local JSON.');
+      console.log('Seeded default projects/testimonials/reviews into local JSON.');
     }
   }
 }
@@ -466,5 +520,50 @@ export async function getAnalyticsStats() {
       leadStatus,
       devices
     };
+  }
+}
+
+// Client Reviews
+export async function getReviews() {
+  if (isMongo) {
+    return await MongoReview.find({ status: 'approved' }).sort({ createdAt: -1 });
+  } else {
+    const db = readJsonDb();
+    const list = db.reviews || [];
+    return list
+      .filter(r => r.status === 'approved')
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+}
+
+export async function createReview(data) {
+  if (isMongo) {
+    const newReview = new MongoReview({
+      name: data.name,
+      company: data.company,
+      email: data.email,
+      projectName: data.projectName || '',
+      rating: Number(data.rating) || 5,
+      feedback: data.feedback,
+      status: 'approved' // auto-approve for simplicity, ready for admin filter
+    });
+    return await newReview.save();
+  } else {
+    const db = readJsonDb();
+    if (!db.reviews) db.reviews = [];
+    const newReview = {
+      _id: generateId(),
+      name: data.name,
+      company: data.company,
+      email: data.email,
+      projectName: data.projectName || '',
+      rating: Number(data.rating) || 5,
+      feedback: data.feedback,
+      status: 'approved',
+      createdAt: new Date().toISOString()
+    };
+    db.reviews.push(newReview);
+    writeJsonDb(db);
+    return newReview;
   }
 }

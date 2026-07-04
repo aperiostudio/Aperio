@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 
-export default function ProjectCard({ project }) {
+export default function ProjectCard({ project, onClick }) {
   const cardRef = useRef(null);
   const [transformStyle, setTransformStyle] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
   const [glareStyle, setGlareStyle] = useState({ opacity: 0 });
@@ -47,6 +47,7 @@ export default function ProjectCard({ project }) {
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       className="glass-panel"
       style={{
         position: 'relative',

@@ -813,3 +813,281 @@ body::before {
 .animate-spin {
   animation: spin 1s linear infinite !important;
 }
+
+/* --- TIMELINE PROCESS SECTION --- */
+.process-timeline {
+  position: relative;
+  max-width: 1000px;
+  margin: 60px auto 0 auto;
+  padding: 20px 0;
+}
+
+/* Central Line */
+.process-timeline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/* Scroll-Progress glowing line overlay */
+.timeline-progress-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-purple));
+  transform: translateX(-50%);
+  z-index: 2;
+  box-shadow: 0 0 10px var(--accent-purple), 0 0 20px var(--accent-cyan);
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.timeline-item {
+  position: relative;
+  width: 50%;
+  margin-bottom: 60px;
+  z-index: 3;
+}
+
+.timeline-item:nth-child(even) {
+  left: 50%;
+  padding-left: 50px;
+}
+
+.timeline-item:nth-child(odd) {
+  left: 0;
+  padding-right: 50px;
+  text-align: right;
+}
+
+/* Centered Timeline Dot */
+.timeline-dot {
+  position: absolute;
+  top: 25px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-deep);
+  border: 3px solid var(--glass-border);
+  z-index: 4;
+  transition: all 0.5s ease;
+}
+
+.timeline-item:nth-child(even) .timeline-dot {
+  left: -9px;
+}
+
+.timeline-item:nth-child(odd) .timeline-dot {
+  right: -9px;
+}
+
+/* Active timeline state styling */
+.timeline-item.active .timeline-dot {
+  background: var(--accent-cyan);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 12px var(--accent-cyan), 0 0 24px var(--accent-purple);
+  transform: scale(1.25);
+}
+
+.timeline-item.active .timeline-dot::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  border: 1px solid var(--accent-cyan);
+  animation: pulse-ring 2s infinite;
+}
+
+.timeline-content-card {
+  padding: 30px;
+  border-radius: 16px;
+  transition: all 0.4s ease;
+}
+
+.timeline-item.active .timeline-content-card {
+  border-color: rgba(0, 242, 254, 0.25);
+  box-shadow: 0 8px 30px rgba(0, 242, 254, 0.05);
+}
+
+.timeline-number {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 2.2rem;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+/* --- WHATSAPP FLOATING BUTTON --- */
+.whatsapp-float {
+  position: fixed;
+  bottom: 110px; /* Offset to avoid clashing with floating Chatbot */
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.35);
+  cursor: pointer;
+  z-index: 40;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.whatsapp-float:hover {
+  transform: translateY(-5px) scale(1.08);
+  box-shadow: 0 8px 30px rgba(37, 211, 102, 0.5);
+  color: #fff;
+}
+
+.whatsapp-float::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 2px solid #25d366;
+  z-index: -1;
+  animation: pulse-ring 2s infinite;
+}
+
+/* --- MODAL POPUP ENGINE --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(5, 2, 12, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  animation: fade-in-anim 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-content-container {
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  background: rgba(10, 4, 20, 0.95);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  overflow-y: auto;
+  position: relative;
+  animation: scale-in-anim 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --- LOGO MARQUEE --- */
+.logos-marquee {
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  position: relative;
+  padding: 40px 0;
+  background: rgba(10, 4, 20, 0.2);
+}
+
+.logos-track {
+  display: flex;
+  gap: 80px;
+  animation: marquee-scroll 25s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  filter: grayscale(100%);
+  transition: all 0.3s ease;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  color: var(--text-normal);
+}
+
+.logo-item:hover {
+  opacity: 1;
+  filter: grayscale(0%);
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+/* --- KEYFRAME ANIMATIONS --- */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.4; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+@keyframes fade-in-anim {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in-anim {
+  from { transform: scale(0.92) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* --- RESPONSIVE TIMELINE --- */
+@media (max-width: 768px) {
+  .process-timeline::before,
+  .timeline-progress-line {
+    left: 20px;
+    transform: none;
+  }
+  
+  .timeline-item {
+    width: 100%;
+    left: 0 !important;
+    padding-left: 45px !important;
+    padding-right: 0 !important;
+    text-align: left !important;
+  }
+  
+  .timeline-dot {
+    left: 11px !important;
+  }
+  
+  .whatsapp-float {
+    bottom: 90px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+  }
+  
+  .modal-overlay {
+    padding: 15px;
+  }
+}

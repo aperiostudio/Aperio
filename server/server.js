@@ -15,7 +15,9 @@ import {
   createLead, 
   updateLeadStatus, 
   recordVisit, 
-  getAnalyticsStats 
+  getAnalyticsStats,
+  getReviews,
+  createReview
 } from './db.js';
 
 import { sendLeadNotification, sendTelegramNotification } from './email.js';
@@ -81,6 +83,30 @@ app.get('/api/test-email', async (req, res) => {
   } catch (err) {
     console.error('Test email route failed:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Get public reviews
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const list = await getReviews();
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve reviews' });
+  }
+});
+
+// Submit a new review
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const { name, company, email, projectName, rating, feedback } = req.body;
+    if (!name || !email || !feedback || !rating) {
+      return res.status(400).json({ error: 'Missing required fields (name, email, feedback, rating)' });
+    }
+    const newReview = await createReview({ name, company, email, projectName, rating, feedback });
+    res.status(201).json(newReview);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to submit review' });
   }
 });
 
