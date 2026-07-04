@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, Upload, Download, HelpCircle, Briefcase, 
   Lock, PlusCircle, Filter, CheckCircle, AlertCircle, Inbox, UserPlus, 
   Menu, Users, MessageSquare, Clipboard, Image, ShieldAlert, CheckSquare, 
-  Heart, Sliders, Volume2, Globe, Clock, Layers
+  Heart, Sliders, Volume2, Globe, Clock, Layers, Sparkles
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
@@ -52,6 +52,16 @@ export default function AdminDashboard() {
   const [mediaList, setMediaList] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [reviews, setReviews] = useState([]); // all feedback
+  const [audits, setAudits] = useState([]); // free website audit leads magnet
+  const [selectedAudit, setSelectedAudit] = useState(null);
+
+  // AI states
+  const [aiProposalText, setAiProposalText] = useState('');
+  const [showAiProposalModal, setShowAiProposalModal] = useState(false);
+  const [aiProposalLoading, setAiProposalLoading] = useState(false);
+  const [aiEmailText, setAiEmailText] = useState('');
+  const [showAiEmailModal, setShowAiEmailModal] = useState(false);
+  const [aiEmailLoading, setAiEmailLoading] = useState(false);
   
   // Configurations state
   const [agencySettings, setAgencySettings] = useState({
@@ -239,6 +249,13 @@ export default function AdminDashboard() {
         setReviews(reviewsData);
       }
 
+      // website audit requests
+      const auditsRes = await fetch(`${API_BASE_URL}/api/admin/audits`, { headers });
+      if (auditsRes.ok) {
+        const auditsData = await auditsRes.json();
+        setAudits(auditsData);
+      }
+
       // configurations
       const configRes = await fetch(`${API_BASE_URL}/api/admin/settings`, { headers });
       if (configRes.ok) {
@@ -407,6 +424,73 @@ export default function AdminDashboard() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleDeleteAudit = async (id) => {
+    if (!confirm('Remove this website audit request?')) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/audits/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      if (res.ok) {
+        setAudits(prev => prev.filter(a => a._id !== id));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleGenerateAiProposal = async (lead) => {
+    setAiProposalLoading(true);
+    setShowAiProposalModal(true);
+    setAiProposalText('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/ai/proposal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(lead)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiProposalText(data.proposal);
+      } else {
+        setAiProposalText('Failed to compile proposal outline.');
+      }
+    } catch (err) {
+      setAiProposalText('Error connecting to AI proposal server.');
+    } finally {
+      setAiProposalLoading(false);
+    }
+  };
+
+  const handleGenerateAiEmail = async (type, lead) => {
+    setAiEmailLoading(true);
+    setShowAiEmailModal(true);
+    setAiEmailText('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/ai/email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ type, lead })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiEmailText(data.emailBody);
+      } else {
+        setAiEmailText('Failed to generate template email.');
+      }
+    } catch (err) {
+      setAiEmailText('Error connecting to AI email compiler.');
+    } finally {
+      setAiEmailLoading(false);
+    }
   };
 
   // Project CRUD execution
@@ -947,6 +1031,9 @@ export default function AdminDashboard() {
           </button>
           <button onClick={() => setActiveTab('feedback')} className={`dashboard-sidebar-item ${activeTab === 'feedback' ? 'active' : ''}`}>
             <MessageSquare size={16} /> Client Feedback
+          </button>
+          <button onClick={() => setActiveTab('audits')} className={`dashboard-sidebar-item ${activeTab === 'audits' ? 'active' : ''}`}>
+            <Laptop size={16} /> Website Audits
           </button>
           <button onClick={() => setActiveTab('logos')} className={`dashboard-sidebar-item ${activeTab === 'logos' ? 'active' : ''}`}>
             <Globe size={16} /> Client Logos
@@ -1958,6 +2045,41 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* TAB 14: WEBSITE AUDITS */}
+          {activeTab === 'audits' && (
+            <div className="glass-panel" style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>Website Audits Dashboard</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '4px' }}>Analyze optimization requests submitted via the Free Website Audit lead magnet.</p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {audits.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '20px 0' }}>No website audit requests logged.</p>
+                ) : (
+                  audits.map(aud => (
+                    <div key={aud._id} style={{
+                      padding: '20px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '30px'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)' }}>{aud.websiteUrl}</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{aud.businessName || 'Individual'} • {aud.email} • {aud.phone || 'No Phone'}</span>
+                        </div>
+                        <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)' }}>Requested: {new Date(aud.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px', shrink: 0 }}>
+                        <button onClick={() => setSelectedAudit(aud)} className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.75rem' }}>View Score Report</button>
+                        <button onClick={() => handleDeleteAudit(aud._id)} style={{ background: 'transparent', border: 'none', color: '#ff3333', cursor: 'pointer', padding: '5px' }}><Trash2 size={16} /></button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
 
       </div>
@@ -2070,6 +2192,87 @@ export default function AdminDashboard() {
                 />
               </div>
 
+              {/* AI LEAD INTELLIGENCE METRICS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px', marginBottom: '30px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={16} style={{ color: 'var(--accent-cyan)' }} />
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: '#fff' }}>AI Lead Intelligence</h4>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="glass-panel" style={{ padding: '15px', textAlign: 'center', border: '1px solid rgba(0, 242, 254, 0.15)', background: 'rgba(0, 242, 254, 0.01)' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Lead Score</span>
+                    <strong style={{ fontSize: '1.4rem', color: 'var(--accent-cyan)', textShadow: '0 0 10px rgba(0, 242, 254, 0.3)' }}>{selectedLead.aiLeadScore || 50}/100</strong>
+                  </div>
+                  <div className="glass-panel" style={{ padding: '15px', textAlign: 'center', border: '1px solid rgba(161, 79, 255, 0.15)', background: 'rgba(161, 79, 255, 0.01)' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Complexity Rating</span>
+                    <strong style={{ fontSize: '1.4rem', color: 'var(--accent-purple)', textShadow: '0 0 10px rgba(161, 79, 255, 0.3)' }}>{selectedLead.aiComplexityScore || 45}/100</strong>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="glass-panel" style={{ padding: '12px 15px' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Urgency Level</span>
+                    <span style={{ 
+                      fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase',
+                      color: selectedLead.aiUrgency === 'high' ? '#ff3333' : selectedLead.aiUrgency === 'low' ? 'var(--text-muted)' : '#ffe600'
+                    }}>{selectedLead.aiUrgency || 'medium'}</span>
+                  </div>
+                  <div className="glass-panel" style={{ padding: '12px 15px' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Estimated Timeline</span>
+                    <span style={{ fontSize: '0.78rem', color: '#fff', fontWeight: '700' }}>{selectedLead.aiEstimatedTimeline || '3-4 Weeks'}</span>
+                  </div>
+                </div>
+
+                <div className="glass-panel" style={{ padding: '15px' }}>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Next Recommended Action</span>
+                  <span style={{ fontSize: '0.8rem', color: '#fff', fontWeight: '600', display: 'block', marginTop: '4px' }}>{selectedLead.aiRecommendedAction || 'Schedule consultation call'}</span>
+                </div>
+
+                {selectedLead.aiPotentialUpsells && selectedLead.aiPotentialUpsells.length > 0 && (
+                  <div className="glass-panel" style={{ padding: '15px' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>Potential Upsell Opportunities</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {selectedLead.aiPotentialUpsells.map((upsell, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-normal)' }}>
+                          <span style={{ color: 'var(--accent-cyan)' }}>✓</span> {upsell}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI ACTION BUTTONS */}
+                <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                  <button 
+                    onClick={() => handleGenerateAiProposal(selectedLead)} 
+                    className="btn-primary" 
+                    style={{ flex: 1, height: '36px', fontSize: '0.78rem', justifyContent: 'center' }}
+                  >
+                    <Sparkles size={13} /> Generate Proposal
+                  </button>
+                  <select 
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleGenerateAiEmail(e.target.value, selectedLead);
+                        e.target.value = ''; // reset selection
+                      }
+                    }}
+                    className="glass-input" 
+                    style={{ flex: 1, height: '36px', fontSize: '0.78rem', background: '#0a0414' }}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Email Assistant...</option>
+                    <option value="welcome">Welcome Email</option>
+                    <option value="proposal">Proposal Email</option>
+                    <option value="followup">Follow-up Email</option>
+                    <option value="reminder">Reminder Email</option>
+                    <option value="completion">Completion Email</option>
+                    <option value="thankyou">Thank You Email</option>
+                  </select>
+                </div>
+              </div>
+
               {/* Conversation log & Notes */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
                 <h4 style={{ fontSize: '0.9rem', fontWeight: '700' }}>Client Interaction Notes</h4>
@@ -2103,6 +2306,138 @@ export default function AdminDashboard() {
             </div>
           </div>
         </>
+      )}
+
+      {/* WEBSITE AUDIT DETAILS POPUP MODAL */}
+      {selectedAudit && (
+        <div className="modal-overlay" onClick={() => setSelectedAudit(null)}>
+          <div className="modal-content-container" style={{ maxWidth: '600px', background: 'rgba(10, 4, 20, 0.98)', border: '1px solid var(--glass-border)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '40px', position: 'relative' }}>
+              <button 
+                onClick={() => setSelectedAudit(null)}
+                style={{ position: 'absolute', top: '25px', right: '25px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={22} />
+              </button>
+
+              <div style={{ marginBottom: '25px' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>Preliminary Report</span>
+                <h3 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-head)', fontWeight: '800', marginTop: '5px', color: '#fff' }}>{selectedAudit.websiteUrl}</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selectedAudit.businessName || 'Individual'} • {selectedAudit.email}</span>
+              </div>
+
+              <div className="glass-panel" style={{ padding: '25px', background: 'rgba(255, 255, 255, 0.01)', overflowY: 'auto', maxHeight: '350px' }}>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-normal)', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                  {selectedAudit.results || 'No audit report cached.'}
+                </div>
+              </div>
+
+              <button onClick={() => setSelectedAudit(null)} className="btn-primary" style={{ marginTop: '20px', width: '100%', justifyContent: 'center' }}>Close Audit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI PROPOSAL PREVIEW MODAL */}
+      {showAiProposalModal && (
+        <div className="modal-overlay" onClick={() => setShowAiProposalModal(false)}>
+          <div className="modal-content-container" style={{ maxWidth: '640px', background: 'rgba(10, 4, 20, 0.98)', border: '1px solid var(--glass-border)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '40px', position: 'relative' }}>
+              <button 
+                onClick={() => setShowAiProposalModal(false)}
+                style={{ position: 'absolute', top: '25px', right: '25px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={22} />
+              </button>
+
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={16} style={{ color: 'var(--accent-cyan)' }} />
+                  <span style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>AI Assistant</span>
+                </div>
+                <h3 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-head)', fontWeight: '800', marginTop: '5px', color: '#fff' }}>Drafted Client Proposal</h3>
+              </div>
+
+              {aiProposalLoading ? (
+                <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>Drafting customized proposal parameters...</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <textarea 
+                    value={aiProposalText} 
+                    onChange={e => setAiProposalText(e.target.value)}
+                    className="glass-input" 
+                    rows="12"
+                    style={{ fontSize: '0.82rem', fontFamily: 'monospace', lineHeight: '1.5', resize: 'none' }}
+                  />
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(aiProposalText);
+                        alert('Proposal copied to clipboard!');
+                      }}
+                      className="btn-primary" 
+                      style={{ flex: 1, justifyContent: 'center' }}
+                    >
+                      Copy to Clipboard
+                    </button>
+                    <button onClick={() => setShowAiProposalModal(false)} className="btn-secondary" style={{ flex: 1 }}>Close Preview</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI EMAIL PREVIEW MODAL */}
+      {showAiEmailModal && (
+        <div className="modal-overlay" onClick={() => setShowAiEmailModal(false)}>
+          <div className="modal-content-container" style={{ maxWidth: '580px', background: 'rgba(10, 4, 20, 0.98)', border: '1px solid var(--glass-border)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '40px', position: 'relative' }}>
+              <button 
+                onClick={() => setShowAiEmailModal(false)}
+                style={{ position: 'absolute', top: '25px', right: '25px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={22} />
+              </button>
+
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={16} style={{ color: 'var(--accent-purple)' }} />
+                  <span style={{ fontSize: '0.72rem', color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>AI Assistant</span>
+                </div>
+                <h3 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-head)', fontWeight: '800', marginTop: '5px', color: '#fff' }}>Drafted Email Auto-responder</h3>
+              </div>
+
+              {aiEmailLoading ? (
+                <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>Compiling client template response...</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <textarea 
+                    value={aiEmailText} 
+                    onChange={e => setAiEmailText(e.target.value)}
+                    className="glass-input" 
+                    rows="10"
+                    style={{ fontSize: '0.85rem', lineHeight: '1.6', resize: 'none' }}
+                  />
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(aiEmailText);
+                        alert('Email text copied!');
+                      }}
+                      className="btn-primary" 
+                      style={{ flex: 1, justifyContent: 'center' }}
+                    >
+                      Copy to Clipboard
+                    </button>
+                    <button onClick={() => setShowAiEmailModal(false)} className="btn-secondary" style={{ flex: 1 }}>Close Preview</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

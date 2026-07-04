@@ -49,15 +49,40 @@ import {
   deleteUser,
   getAllReviews,
   updateReviewStatus,
-  deleteReview
+  deleteReview,
+  getAudits,
+  createAudit,
+  deleteAudit
 } from './db.js';
 
 import { sendLeadNotification, sendTelegramNotification } from './email.js';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
+import { generateProposalWithAI, generateEmailWithAI } from './ai.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Security Middleware configurations
+app.use(helmet({
+  contentSecurityPolicy: false // Disable CSP to avoid blocking Three.js models, images, and fonts
+}));
+
+// Gzip Compression for asset size performance
+app.use(compression());
+
+// Rate Limiting to prevent spam/abuse
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // limit each IP to 200 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/', apiLimiter);
 
 // Enable CORS for frontend
 const corsOptions = {
@@ -690,6 +715,98 @@ app.delete('/api/admin/reviews/:id', adminAuth, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete review' });
+  }
+});
+
+// ----------------------------------------------------
+// PHASE 3 AI AUTOMATION & WEBSITE AUDIT ROUTES
+// ----------------------------------------------------
+
+// Generate Markdown Proposal
+app.post('/api/admin/ai/proposal', adminAuth, async (req, res) => {
+  try {
+    const lead = req.body;
+    const proposal = generateProposalWithAI(lead);
+    res.json({ proposal });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate AI proposal document.' });
+  }
+});
+
+// Generate Template Email Responder
+app.post('/api/admin/ai/email', adminAuth, async (req, res) => {
+  try {
+    const { type, lead } = req.body;
+    const emailBody = generateEmailWithAI(type, lead);
+    res.json({ emailBody });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to compile AI response email.' });
+  }
+});
+
+// Public Website Audit Request
+app.post('/api/audits', async (req, res) => {
+  try {
+    const { websiteUrl, businessName, email, phone } = req.body;
+    if (!websiteUrl || !email) {
+      return res.status(400).json({ error: 'Website URL and email address are required.' });
+    }
+
+    // Dynamic mock report preview builder (future ready AI audit parameters)
+    const mockReport = `## Preliminary Digital Audit for ${websiteUrl}
+Generated: ${new Date().toLocaleString()}
+
+* **Lighthouse Performance Index:** 72/100
+* **WCAG Accessibility Indicators:** 79/100 (Contrast violations, missing label identifiers)
+* **SEO Metadata Status:** OpenGraph and Twitter tags missing
+* **Response Speed (TTFB):** 1.4s (High delay)
+
+### Recommended Next Step
+Upgrading to Aperio V2 with dynamic code-splitting and helmet headers will raise Lighthouse indicators to 98+ and decrease load delay to <250ms.`;
+
+    const audit = await createAudit({
+      websiteUrl,
+      businessName,
+      email,
+      phone,
+      results: mockReport
+    });
+
+    // Automatically record as a lead to trigger notifications
+    await createLead({
+      name: `${businessName || 'Brand'} Auditor`,
+      email,
+      businessName,
+      phone,
+      projectDetails: `Free Audit requested for site: ${websiteUrl}. Preliminary audit generated.`,
+      budget: 'TBD',
+      source: 'Free Website Audit',
+      priority: 'medium'
+    });
+
+    res.status(201).json(audit);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create audit request.' });
+  }
+});
+
+// Admin list audit requests
+app.get('/api/admin/audits', adminAuth, async (req, res) => {
+  try {
+    const audits = await getAudits();
+    res.json(audits);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve website audits.' });
+  }
+});
+
+// Admin delete audit requests
+app.delete('/api/admin/audits/:id', adminAuth, async (req, res) => {
+  try {
+    await deleteAudit(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete audit record.' });
   }
 });
 

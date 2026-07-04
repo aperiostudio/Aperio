@@ -1,0 +1,16 @@
+{
+  "short_name": "Aperio",
+  "name": "Aperio Studio - Premium Digital Agency",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#05020c",
+  "theme_color": "#a14fff",
+  "display": "standalone",
+  "orientation": "portrait"
+}

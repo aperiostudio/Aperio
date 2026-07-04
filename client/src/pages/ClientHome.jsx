@@ -92,6 +92,12 @@ export default function ClientHome() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  
+  // Website Audit form states
+  const [auditForm, setAuditForm] = useState({ websiteUrl: '', businessName: '', email: '', phone: '' });
+  const [auditStatus, setAuditStatus] = useState(null); // 'success' | 'error' | 'submitting'
+  const [auditErrorMsg, setAuditErrorMsg] = useState('');
   
   // Reviews submit form states
   const [newReview, setNewReview] = useState({ name: '', company: '', email: '', projectName: '', rating: 5, feedback: '' });
@@ -382,6 +388,42 @@ export default function ClientHome() {
     }
   };
 
+  const handleAuditSubmit = async (e) => {
+    e.preventDefault();
+    setAuditStatus('submitting');
+    setAuditErrorMsg('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/audits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(auditForm)
+      });
+      if (res.ok) {
+        setAuditStatus('success');
+        setAuditForm({ websiteUrl: '', businessName: '', email: '', phone: '' });
+      } else {
+        const data = await res.json();
+        setAuditStatus('error');
+        setAuditErrorMsg(data.error || 'Failed to submit audit request.');
+      }
+    } catch (err) {
+      setAuditStatus('error');
+      setAuditErrorMsg('Connection timeout or network error.');
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsAuditModalOpen(false);
+        setIsBookingOpen(false);
+        setIsProjectModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Cycle project modal previous/next project
   const handlePrevProject = (currentProjId) => {
     const idx = projects.findIndex(p => p._id === currentProjId);
@@ -522,43 +564,71 @@ export default function ClientHome() {
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
+      {/* Keyboard Skip Navigation Link */}
+      <a 
+        href="#main-content" 
+        style={{
+          position: 'absolute',
+          top: '-100px',
+          left: '20px',
+          background: 'var(--accent-purple)',
+          color: '#fff',
+          padding: '10px 20px',
+          zIndex: 1000,
+          borderRadius: '4px',
+          fontFamily: 'var(--font-body)',
+          fontSize: '0.85rem',
+          fontWeight: '600',
+          transition: 'top 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+          outline: 'none',
+          boxShadow: '0 10px 25px rgba(161, 79, 255, 0.3)'
+        }}
+        onFocus={e => e.target.style.top = '15px'}
+        onBlur={e => e.target.style.top = '-100px'}
+      >
+        Skip to main content
+      </a>
+
       {/* Background radial glows */}
       <div className="radial-glow" style={{ top: '-10%', left: '-10%' }} />
       <div className="radial-glow-cyan" style={{ top: '40%', right: '-15%' }} />
       <div className="radial-glow" style={{ bottom: '10%', left: '5%' }} />
 
       {/* Navigation Header */}
-      <nav style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        padding: '20px 8%',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: 'rgba(5, 2, 12, 0.75)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--glass-border)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="text-gradient" style={{
-            fontFamily: 'var(--font-head)',
-            fontSize: '1.6rem',
-            fontWeight: '800',
-            letterSpacing: '1px'
-          }}>
-            APERIO
-          </span>
-          <span style={{ fontSize: '0.6rem', background: 'var(--accent-purple)', color: '#fff', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Studio</span>
-        </div>
+      <header role="banner" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+        <nav style={{
+          padding: '20px 8%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: 'rgba(5, 2, 12, 0.75)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--glass-border)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="text-gradient" style={{
+              fontFamily: 'var(--font-head)',
+              fontSize: '1.6rem',
+              fontWeight: '800',
+              letterSpacing: '1px'
+            }}>
+              APERIO
+            </span>
+            <span style={{ fontSize: '0.6rem', background: 'var(--accent-purple)', color: '#fff', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Studio</span>
+          </div>
 
-        <div style={{ display: 'flex', gap: '40px', alignItems: 'center' }}>
-          <a href="#services" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Services</a>
-          <a href="#portfolio" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Portfolio</a>
-          <a href="#testimonials" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Testimonials</a>
-          <a href="#contact" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Get in Touch</a>
-        </div>
-      </nav>
+          <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
+            <a href="#services" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Services</a>
+            <a href="#portfolio" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Portfolio</a>
+            <a href="#testimonials" style={{ color: 'var(--text-normal)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500', transition: 'color 0.3s' }} onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = 'var(--text-normal)'}>Testimonials</a>
+            <button onClick={() => setIsAuditModalOpen(true)} className="btn-secondary" style={{ padding: '8px 18px', fontSize: '0.85rem', cursor: 'pointer', border: '1px solid var(--accent-cyan)', color: 'var(--accent-cyan)', background: 'transparent' }} aria-label="Open free website audit form">Free Audit</button>
+            <a href="#contact" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Get in Touch</a>
+          </div>
+        </nav>
+      </header>
+
+      {/* Main Content Area */}
+      <main id="main-content">
 
       {/* Hero Section */}
       <section 
@@ -1603,6 +1673,104 @@ export default function ClientHome() {
           </div>
         </div>
       </section>
+      </main>
+
+      {/* Free Website Audit Modal */}
+      {isAuditModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsAuditModalOpen(false)}>
+          <div className="modal-content-container" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '40px', position: 'relative' }}>
+              
+              {/* Close Button */}
+              <button 
+                onClick={() => setIsAuditModalOpen(false)}
+                style={{ position: 'absolute', top: '25px', right: '25px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', transition: 'color 0.2s' }}
+                onMouseEnter={e => e.target.style.color = '#fff'}
+                onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
+                aria-label="Close website audit form"
+              >
+                <X size={24} />
+              </button>
+
+              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <Cpu size={32} style={{ color: 'var(--accent-cyan)', marginBottom: '15px' }} />
+                <h3 style={{ fontSize: '1.8rem', fontFamily: 'var(--font-head)', fontWeight: '800', marginBottom: '10px', color: '#fff' }}>
+                  Free Website Audit
+                </h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: '1.5' }}>
+                  Submit your business website URL, and our heuristic analysis parser will score your technical performance, SEO headers, and WCAG accessibility indicators.
+                </p>
+              </div>
+
+              {auditStatus === 'success' ? (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <CheckCircle size={48} style={{ color: '#00ff64', marginBottom: '15px' }} />
+                  <h4 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '8px' }}>Request Submitted!</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                    We have successfully captured your website parameters. Our team will review the score logs and email you the full audit details shortly.
+                  </p>
+                  <button onClick={() => setIsAuditModalOpen(false)} className="btn-primary" style={{ marginTop: '20px', width: '100%', justifyContent: 'center' }}>Close</button>
+                </div>
+              ) : (
+                <form onSubmit={handleAuditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div>
+                    <label htmlFor="audit-web" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '5px', color: 'var(--text-bright)' }}>Website URL *</label>
+                    <input 
+                      id="audit-web"
+                      type="url" 
+                      required 
+                      value={auditForm.websiteUrl} 
+                      onChange={e => setAuditForm(f => ({ ...f, websiteUrl: e.target.value }))}
+                      className="glass-input" 
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="audit-biz" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '5px', color: 'var(--text-bright)' }}>Business Name</label>
+                    <input 
+                      id="audit-biz"
+                      type="text" 
+                      value={auditForm.businessName} 
+                      onChange={e => setAuditForm(f => ({ ...f, businessName: e.target.value }))}
+                      className="glass-input" 
+                      placeholder="My Business LLC"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="audit-email" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '5px', color: 'var(--text-bright)' }}>Email Address *</label>
+                    <input 
+                      id="audit-email"
+                      type="email" 
+                      required 
+                      value={auditForm.email} 
+                      onChange={e => setAuditForm(f => ({ ...f, email: e.target.value }))}
+                      className="glass-input" 
+                      placeholder="contact@mycompany.com"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="audit-phone" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '5px', color: 'var(--text-bright)' }}>Phone Number</label>
+                    <input 
+                      id="audit-phone"
+                      type="tel" 
+                      value={auditForm.phone} 
+                      onChange={e => setAuditForm(f => ({ ...f, phone: e.target.value }))}
+                      className="glass-input" 
+                      placeholder="+1 (555) 000-0000"
+                    />
+                  </div>
+                  {auditStatus === 'error' && (
+                    <p style={{ color: '#ff3333', fontSize: '0.8rem', textAlign: 'center' }}>{auditErrorMsg}</p>
+                  )}
+                  <button type="submit" disabled={auditStatus === 'submitting'} className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '10px' }}>
+                    {auditStatus === 'submitting' ? 'Analyzing Site Headers...' : 'Generate Heuristic Score'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <hr className="section-divider" />

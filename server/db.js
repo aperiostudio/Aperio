@@ -3,6 +3,7 @@ import path from 'path';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { sendLeadNotification, sendTelegramNotification } from './email.js';
+import { analyzeLead } from './ai.js';
 
 dotenv.config();
 
@@ -160,7 +161,14 @@ const LeadSchema = new mongoose.Schema({
   conversations: { type: Array, default: [] },
   timeline: { type: Array, default: [] },
   proposalStatus: { type: String, default: 'None' },
-  paymentStatus: { type: String, default: 'Unpaid' }
+  paymentStatus: { type: String, default: 'Unpaid' },
+  aiLeadScore: { type: Number, default: 0 },
+  aiUrgency: { type: String, default: 'medium' },
+  aiComplexityScore: { type: Number, default: 0 },
+  aiEstimatedTimeline: { type: String, default: '' },
+  aiRecommendedAction: { type: String, default: '' },
+  aiPotentialUpsells: { type: Array, default: [] },
+  aiSuggestedResponse: { type: String, default: '' }
 });
 const MongoLead = mongoose.models.Lead || mongoose.model('Lead', LeadSchema);
 
@@ -281,6 +289,17 @@ const UserSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const MongoUser = mongoose.models.User || mongoose.model('User', UserSchema);
+
+const AuditSchema = new mongoose.Schema({
+  websiteUrl: String,
+  businessName: String,
+  email: String,
+  phone: String,
+  status: { type: String, default: 'pending' }, // 'pending' | 'completed'
+  results: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now }
+});
+const MongoAudit = mongoose.models.Audit || mongoose.model('Audit', AuditSchema);
 
 // ----------------------------------------------------
 // SEEDING DEFAULTS
@@ -512,6 +531,7 @@ export async function getLeads() {
 
 export async function createLead(data) {
   let newLead;
+  const aiStats = analyzeLead(data);
   const leadPayload = {
     name: data.name,
     email: data.email,
@@ -535,7 +555,14 @@ export async function createLead(data) {
     conversations: data.conversations || [],
     timeline: data.timeline || [{ action: 'Lead Created', date: new Date().toISOString(), user: 'System' }],
     proposalStatus: data.proposalStatus || 'None',
-    paymentStatus: data.paymentStatus || 'Unpaid'
+    paymentStatus: data.paymentStatus || 'Unpaid',
+    aiLeadScore: aiStats.leadScore,
+    aiUrgency: aiStats.urgency,
+    aiComplexityScore: aiStats.complexityScore,
+    aiEstimatedTimeline: aiStats.estimatedTimeline,
+    aiRecommendedAction: aiStats.recommendedAction,
+    aiPotentialUpsells: aiStats.potentialUpsells,
+    aiSuggestedResponse: aiStats.suggestedResponse
   };
 
   if (isMongo) {
@@ -1184,5 +1211,54 @@ export async function createReview(data) {
     db.reviews.push(newReview);
     writeJsonDb(db);
     return newReview;
+  }
+}
+
+export async function getAudits() {
+  if (isMongo) {
+    return await MongoAudit.find().sort({ createdAt: -1 });
+  } else {
+    const db = readJsonDb();
+    const list = db.audits || [];
+    return [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+}
+
+export async function createAudit(data) {
+  const auditPayload = {
+    websiteUrl: data.websiteUrl,
+    businessName: data.businessName || '',
+    email: data.email,
+    phone: data.phone || '',
+    status: 'pending',
+    results: data.results || ''
+  };
+
+  if (isMongo) {
+    const mongoAudit = new MongoAudit(auditPayload);
+    return await mongoAudit.save();
+  } else {
+    const db = readJsonDb();
+    if (!db.audits) db.audits = [];
+    const newAudit = {
+      _id: generateId(),
+      ...auditPayload,
+      createdAt: new Date().toISOString()
+    };
+    db.audits.push(newAudit);
+    writeJsonDb(db);
+    return newAudit;
+  }
+}
+
+export async function deleteAudit(id) {
+  if (isMongo) {
+    return await MongoAudit.findByIdAndDelete(id);
+  } else {
+    const db = readJsonDb();
+    if (!db.audits) db.audits = [];
+    db.audits = db.audits.filter(a => a._id !== id);
+    writeJsonDb(db);
+    return true;
   }
 }
