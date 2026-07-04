@@ -17,7 +17,39 @@ import {
   recordVisit, 
   getAnalyticsStats,
   getReviews,
-  createReview
+  createReview,
+  updateLeadCrm,
+  bulkImportLeads,
+  getServices,
+  createService,
+  updateService,
+  deleteService,
+  getFaqs,
+  createFaq,
+  updateFaq,
+  deleteFaq,
+  getLogos,
+  createLogo,
+  updateLogo,
+  deleteLogo,
+  getLogs,
+  createLog,
+  getNotifications,
+  createNotification,
+  markNotificationsRead,
+  clearNotifications,
+  getMedia,
+  createMedia,
+  deleteMedia,
+  getSettings,
+  updateSettings,
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  getAllReviews,
+  updateReviewStatus,
+  deleteReview
 } from './db.js';
 
 import { sendLeadNotification, sendTelegramNotification } from './email.js';
@@ -349,6 +381,315 @@ app.put('/api/admin/testimonials/:id', adminAuth, async (req, res) => {
     res.json(updatedTest);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update testimonial' });
+  }
+});
+
+// ----------------------------------------------------
+// PHASE 2 SaaS & CRM ROUTE ENDPOINTS
+// ----------------------------------------------------
+
+// CRM Update Lead Details
+app.patch('/api/admin/leads/:id/crm', adminAuth, async (req, res) => {
+  try {
+    const updated = await updateLeadCrm(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Lead not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update CRM lead details' });
+  }
+});
+
+// Bulk Import Leads (CSV upload)
+app.post('/api/admin/leads/import', adminAuth, async (req, res) => {
+  try {
+    const leadsList = req.body;
+    if (!Array.isArray(leadsList)) {
+      return res.status(400).json({ error: 'Leads data must be an array' });
+    }
+    const imported = await bulkImportLeads(leadsList);
+    res.status(201).json({ success: true, count: imported.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to bulk import leads' });
+  }
+});
+
+// Get public / admin services
+app.get('/api/services', async (req, res) => {
+  try {
+    const services = await getServices();
+    res.json(services);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve services' });
+  }
+});
+
+app.post('/api/admin/services', adminAuth, async (req, res) => {
+  try {
+    const newService = await createService(req.body);
+    res.status(201).json(newService);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create service' });
+  }
+});
+
+app.put('/api/admin/services/:id', adminAuth, async (req, res) => {
+  try {
+    const updated = await updateService(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Service not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update service' });
+  }
+});
+
+app.delete('/api/admin/services/:id', adminAuth, async (req, res) => {
+  try {
+    await deleteService(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete service' });
+  }
+});
+
+// FAQs
+app.get('/api/faqs', async (req, res) => {
+  try {
+    const faqs = await getFaqs();
+    res.json(faqs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve FAQs' });
+  }
+});
+
+app.post('/api/admin/faqs', adminAuth, async (req, res) => {
+  try {
+    const newFaq = await createFaq(req.body);
+    res.status(201).json(newFaq);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create FAQ' });
+  }
+});
+
+app.put('/api/admin/faqs/:id', adminAuth, async (req, res) => {
+  try {
+    const updated = await updateFaq(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'FAQ not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update FAQ' });
+  }
+});
+
+app.delete('/api/admin/faqs/:id', adminAuth, async (req, res) => {
+  try {
+    await deleteFaq(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete FAQ' });
+  }
+});
+
+// Client Logos
+app.get('/api/logos', async (req, res) => {
+  try {
+    const logos = await getLogos();
+    res.json(logos);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve logos' });
+  }
+});
+
+app.post('/api/admin/logos', adminAuth, async (req, res) => {
+  try {
+    const newLogo = await createLogo(req.body);
+    res.status(201).json(newLogo);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save logo' });
+  }
+});
+
+app.put('/api/admin/logos/:id', adminAuth, async (req, res) => {
+  try {
+    const updated = await updateLogo(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Logo not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update logo' });
+  }
+});
+
+app.delete('/api/admin/logos/:id', adminAuth, async (req, res) => {
+  try {
+    await deleteLogo(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete logo' });
+  }
+});
+
+// Activity Logs
+app.get('/api/admin/logs', adminAuth, async (req, res) => {
+  try {
+    const logs = await getLogs();
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch logs' });
+  }
+});
+
+// Notification Center
+app.get('/api/admin/notifications', adminAuth, async (req, res) => {
+  try {
+    const notifications = await getNotifications();
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve notifications' });
+  }
+});
+
+app.post('/api/admin/notifications/read', adminAuth, async (req, res) => {
+  try {
+    await markNotificationsRead();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to mark notifications read' });
+  }
+});
+
+app.delete('/api/admin/notifications', adminAuth, async (req, res) => {
+  try {
+    await clearNotifications();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear notifications' });
+  }
+});
+
+// Media Library
+app.get('/api/admin/media', adminAuth, async (req, res) => {
+  try {
+    const media = await getMedia();
+    res.json(media);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve media library' });
+  }
+});
+
+app.post('/api/admin/media', adminAuth, async (req, res) => {
+  try {
+    const newMedia = await createMedia(req.body);
+    res.status(201).json(newMedia);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save media item' });
+  }
+});
+
+app.delete('/api/admin/media/:id', adminAuth, async (req, res) => {
+  try {
+    await deleteMedia(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete media item' });
+  }
+});
+
+// Settings Management
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await getSettings();
+    // Exclude API keys when retrieving publicly
+    const publicSettings = {
+      agency: settings.agency,
+      website: settings.website
+    };
+    res.json(publicSettings);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+app.get('/api/admin/settings', adminAuth, async (req, res) => {
+  try {
+    const settings = await getSettings();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch config' });
+  }
+});
+
+app.put('/api/admin/settings', adminAuth, async (req, res) => {
+  try {
+    const updated = await updateSettings(req.body);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update agency configuration' });
+  }
+});
+
+// Team Members Users
+app.get('/api/admin/users', adminAuth, async (req, res) => {
+  try {
+    const users = await getUsers();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve team members' });
+  }
+});
+
+app.post('/api/admin/users', adminAuth, async (req, res) => {
+  try {
+    const newUser = await createUser(req.body);
+    res.status(201).json(newUser);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+app.put('/api/admin/users/:id', adminAuth, async (req, res) => {
+  try {
+    const updated = await updateUser(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'User not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
+  try {
+    await deleteUser(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// Admin reviews CRUD (all reviews)
+app.get('/api/admin/reviews', adminAuth, async (req, res) => {
+  try {
+    const reviews = await getAllReviews();
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve reviews' });
+  }
+});
+
+app.patch('/api/admin/reviews/:id', adminAuth, async (req, res) => {
+  try {
+    const updated = await updateReviewStatus(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Review not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update review details' });
+  }
+});
+
+app.delete('/api/admin/reviews/:id', adminAuth, async (req, res) => {
+  try {
+    await deleteReview(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete review' });
   }
 });
 
